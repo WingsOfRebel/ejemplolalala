@@ -1,0 +1,219 @@
+install.packages("MASS")
+library(MASS)
+
+names(Boston)
+
+modelo <- lm(medv ~ crim + indus + rm + age, data = Boston)
+
+summary(modelo)
+
+nuevos_datos <- Boston[c(12, 13), c("crim", "indus", "rm", "age")]
+
+predicciones <- predict(modelo, nuevos_datos)
+
+observados <- Boston$medv[c(12, 13)]
+
+# Correlación entre predicciones y valores reales
+correlacion <- cor(predicciones, observados)
+
+print(predicciones)
+print(observados)
+print(correlacion)
+
+crim_vals <- seq(0, 100, by = 10)
+
+sim_data <- data.frame(
+  crim = crim_vals,
+  indus = mean(Boston$indus),
+  rm = mean(Boston$rm),
+  age = mean(Boston$age)
+)
+
+predicciones_simuladas <- predict(modelo, sim_data)
+
+plot(crim_vals, predicciones_simuladas, type = "b", col = "red",
+     main = "Efecto de crim sobre medv",
+     xlab = "Tasa de criminalidad (crim)", ylab = "Valor de la vivienda (medv)")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__________________________________________________________
+
+
+
+
+
+
+
+
+install.packages("MASS")
+library(MASS)
+
+# 1. Ver nombres y primeras filas del dataset
+names(birthwt)
+head(birthwt)
+
+# 2. Convertir 'low' (0/1) a factor con etiquetas
+birthwt$low <- factor(birthwt$low, labels = c("Normal", "Low"))
+
+# 3. Ajustar modelo de regresión logística
+modelo_log <- glm(low ~ age + lwt + smoke + ptl,
+                  family = binomial,
+                  data = birthwt)
+
+# 4. Resumen del modelo
+summary(modelo_log)
+
+# 5. Seleccionar manualmente filas 10 y 20 para comparación
+datos_sel <- birthwt[c(10, 20), c("age", "lwt", "smoke", "ptl")]
+
+# 6. Predecir probabilidades de 'Low'
+probabilidades <- predict(modelo_log, datos_sel, type = "response")
+
+# 7. Valores observados
+observados <- birthwt$low[c(10, 20)]
+
+# 8. Correlación entre probabilidad predicha y valor observado
+#    (convertimos factores a numéricos para la correlación)
+correlacion <- cor(as.numeric(probabilidades),
+                   as.numeric(observados))
+
+print(probabilidades)
+print(observados)
+print(correlacion)
+
+# 9. Matriz de confusión con umbral 0.5
+pred_class <- ifelse(probabilidades > 0.5, "Low", "Normal")
+table(Predicho = pred_class, Real = observados)
+
+# 10. Simulación del efecto de 'lwt' sobre la probabilidad de 'Low'
+lwt_vals    <- seq(min(birthwt$lwt), max(birthwt$lwt), length.out = 50)
+media_age   <- mean(birthwt$age)
+modo_smoke  <- as.numeric(names(sort(table(birthwt$smoke),
+                                     decreasing = TRUE)[1]))
+media_ptl   <- mean(birthwt$ptl)
+
+sim_data_log <- data.frame(
+  age   = media_age,
+  lwt   = lwt_vals,
+  smoke = modo_smoke,
+  ptl   = media_ptl
+)
+
+prob_sim <- predict(modelo_log, sim_data_log, type = "response")
+
+plot(lwt_vals, prob_sim, type = "b",
+     main = "Efecto de lwt en prob. de bajo peso al nacer",
+     xlab = "Peso de la madre al inicio (lwt)",
+     ylab = "Probabilidad predicha de bajo peso ('Low')")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__________________________________________________________
+
+
+
+
+
+
+# 1. Instalar y cargar MASS
+install.packages("MASS")
+library(MASS)
+data(Boston)
+
+# 2. Crear la variable respuesta binaria: High si medv > mediana, Low en caso contrario
+Boston$high_medv <- factor(
+  ifelse(Boston$medv > median(Boston$medv), "High", "Low"),
+  levels = c("Low", "High")
+)
+
+# 3. Ajustar modelo de regresión logística
+modelo_log <- glm(
+  high_medv ~ crim + indus + rm + age,
+  family = binomial,
+  data = Boston
+)
+
+# 4. Resumen del modelo
+summary(modelo_log)
+
+# 5. Selección manual de las filas 12 y 13
+datos_manual <- Boston[c(12, 13), c("crim", "indus", "rm", "age", "high_medv")]
+
+# 6. Predicción de probabilidades de 'High'
+probabilidades <- predict(modelo_log, datos_manual, type = "response")
+
+# 7. Valores observados
+observados <- datos_manual$high_medv
+
+# 8. Correlación entre probabilidad predicha y observado (convertido a numérico)
+correlacion <- cor(probabilidades, as.numeric(observados))
+
+# 9. Mostrar resultados
+print(data.frame(
+  fila = c(12,13),
+  prob_High = round(probabilidades, 3),
+  observado = observados
+))
+cat("Correlación predicho vs. observado:", round(correlacion, 3), "\n\n")
+
+# 10. Matriz de confusión (umbral 0.5)
+pred_clase <- factor(
+  ifelse(probabilidades > 0.5, "High", "Low"),
+  levels = c("Low", "High")
+)
+cat("Matriz de confusión:\n")
+print(table(Predicho = pred_clase, Real = observados))
+
+# 11. Simulación del efecto de 'crim' sobre la probabilidad de 'High'
+crim_vals <- seq(0, 100, by = 10)
+sim_data_log <- data.frame(
+  crim  = crim_vals,
+  indus = mean(Boston$indus),
+  rm    = mean(Boston$rm),
+  age   = mean(Boston$age)
+)
+prob_sim <- predict(modelo_log, sim_data_log, type = "response")
+
+# 12. Graficar efecto de 'crim'
+plot(crim_vals, prob_sim, type = "b",
+     main = "Efecto de crim en la probabilidad de alta medv",
+     xlab = "Tasa de criminalidad (crim)",
+     ylab = "Probabilidad predicha de High")
